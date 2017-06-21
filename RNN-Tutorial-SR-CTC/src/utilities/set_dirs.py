@@ -10,9 +10,7 @@ def get_relevant_directories(
         debug=False):
 
     home_dir = get_home_dir(home_dir=home_dir)
-
     data_dir = get_data_dir(data_dir=data_dir, home_dir=home_dir)
-
     conf_dir = get_conf_dir(conf_dir=conf_dir, home_dir=home_dir, debug=debug)
 
     return home_dir, data_dir, conf_dir
