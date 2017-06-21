@@ -30,7 +30,7 @@ def SimpleLSTM(conf_path, input_tensor, seq_length):
     # batch_x_shape = tf.shape(batch_x)
 
     input_tensor_shape = tf.shape(input_tensor)
-    n_items = input_tensor_shape[0]
+    batch_size = input_tensor_shape[0]
 
     with tf.name_scope("lstm"):
         # Initialize weights
@@ -72,7 +72,7 @@ def SimpleLSTM(conf_path, input_tensor, seq_length):
         tf.summary.histogram("activations", logits)
 
         # Reshaping back to the original shape
-        logits = tf.reshape(logits, [n_items, -1, n_character])
+        logits = tf.reshape(logits, [batch_size, -1, n_character])
 
         # Put time as the major axis
         logits = tf.transpose(logits, (1, 0, 2))
