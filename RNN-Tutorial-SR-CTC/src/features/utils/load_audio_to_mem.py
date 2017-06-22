@@ -24,10 +24,8 @@ def get_audio_and_transcript(txt_files, wav_files, n_input, n_context):
     Returns list of arrays. Returned audio array list can be padded with
     pad_sequences function in this same module.
     '''
-    audio = []
-    audio_len = []
-    transcript = []
-    transcript_len = []
+    audio, audio_len = [], []
+    transcript, transcript_len = [], []
 
     for txt_file, wav_file in zip(txt_files, wav_files):
         # load audio and convert to features
@@ -196,4 +194,5 @@ def pad_sequences(sequences, maxlen=None, dtype=np.float32,
             x[idx, -len(trunc):] = trunc
         else:
             raise ValueError('Padding type "%s" not understood' % padding)
+
     return x, lengths
