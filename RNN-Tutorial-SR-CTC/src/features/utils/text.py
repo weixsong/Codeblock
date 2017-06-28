@@ -149,6 +149,7 @@ def gather_nd(params, indices, shape):
     '''
     rank = len(shape)
     flat_params = tf.reshape(params, [-1])
+    # what is this???
     multipliers = [reduce(lambda x, y: x * y, shape[i + 1:], 1) for i in range(0, rank)]
     indices_unpacked = tf.unstack(tf.transpose(indices, [rank - 1] + range(0, rank - 1)))
     flat_indices = sum([a * b for a, b in zip(multipliers, indices_unpacked)])

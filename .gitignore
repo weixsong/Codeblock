@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+WEB/
+*.DS_Store
+Kyubyong_tacotron/logdir_s/
+
 # C extensions
 *.so
 
