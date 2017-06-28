@@ -57,7 +57,8 @@ def producer_func(func):
         enqueue_op = queue.enqueue(placeholders)
 
         # create queue runner
-        runner = _FuncQueueRunner(enqueue_func, queue, [enqueue_op] * num_threads)
+        runner = _FuncQueueRunner(enqueue_func, queue,
+                                  [enqueue_op] * num_threads)
 
         # register to global collection
         tf.train.add_queue_runner(runner)
@@ -101,7 +102,8 @@ class _FuncQueueRunner(tf.train.QueueRunner):
                                 sess.run(self._close_op)
                             except Exception as e:
                                 # Intentionally ignore errors from close_op.
-                                logging.vlog(1, "Ignored exception: %s", str(e))
+                                logging.vlog(
+                                    1, "Ignored exception: %s", str(e))
                         return
         except Exception as e:
             # This catches all other exceptions.
@@ -117,22 +119,24 @@ class _FuncQueueRunner(tf.train.QueueRunner):
             if not decremented:
                 with self._lock:
                     self._runs_per_session[sess] -= 1
-                    
+
+
 def get_batch():
     """Loads training data and put them in queues"""
     with tf.device('/cpu:0'):
         # Load data
-        texts, sound_files = load_train_data() # byte, string
-        
+        texts, sound_files = load_train_data()  # byte, string
+
         # calc total batch count
         num_batch = len(texts) // hp.batch_size
-         
+
         # Convert to tensor
         texts = tf.convert_to_tensor(texts)
         sound_files = tf.convert_to_tensor(sound_files)
-         
+
         # Create Queues
-        text, sound_file = tf.train.slice_input_producer([texts, sound_files], shuffle=True)
+        text, sound_file = tf.train.slice_input_producer(
+            [texts, sound_files], shuffle=True)
 
         @producer_func
         def get_text_and_spectrograms(_inputs):
@@ -141,31 +145,35 @@ def get_batch():
                then enqueue them again. 
             '''
             _text, _sound_file = _inputs
-            
+
             # Processing
-            _text = np.fromstring(_text, np.int32) # byte to int
+            _text = np.fromstring(_text, np.int32)  # byte to int
             _spectrogram, _magnitude = get_spectrograms(_sound_file)
-             
-            _spectrogram = reduce_frames(_spectrogram, hp.win_length//hp.hop_length, hp.r)
-            _magnitude = reduce_frames(_magnitude, hp.win_length//hp.hop_length, hp.r)
-    
+
+            _spectrogram = reduce_frames(
+                _spectrogram, hp.win_length // hp.hop_length, hp.r)
+            _magnitude = reduce_frames(
+                _magnitude, hp.win_length // hp.hop_length, hp.r)
+
             return _text, _spectrogram, _magnitude
-            
+
         # Decode sound file
-        x, y, z = get_text_and_spectrograms(inputs=[text, sound_file], 
-                                            dtypes=[tf.int32, tf.float32, tf.float32],
+        x, y, z = get_text_and_spectrograms(inputs=[text, sound_file],
+                                            dtypes=[
+                                                tf.int32, tf.float32, tf.float32],
                                             capacity=128,
                                             num_threads=32)
-        
+
         # create batch queues
         x, y, z = tf.train.batch([x, y, z],
-                                shapes=[(None,), (None, hp.n_mels*hp.r), (None, (1+hp.n_fft//2)*hp.r)],
-                                num_threads=32,
-                                batch_size=hp.batch_size, 
-                                capacity=hp.batch_size*32,   
-                                dynamic_pad=True)
-        
+                                 shapes=[(None,), (None, hp.n_mels * hp.r),
+                                         (None, (1 + hp.n_fft // 2) * hp.r)],
+                                 num_threads=32,
+                                 batch_size=hp.batch_size,
+                                 capacity=hp.batch_size * 32,
+                                 dynamic_pad=True)
+
         if hp.use_log_magnitude:
-            z = tf.log(z+1e-10)
-            
+            z = tf.log(z + 1e-10)
+
     return x, y, z, num_batch
